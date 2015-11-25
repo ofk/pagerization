@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Pagerization</title>
+  </head>
+  <body>
+    <form id="f">
+      <div class="settings-row">
+        <button name="update_rules">Update rules</button> <span></span>
+      </div>
+      <div class="checkbox">
+        <label><input type="checkbox" name="enable"><span>Auto start</span></label>
+      </div>
+      <div class="checkbox">
+        <label><input type="checkbox" name="detect_url_change"><span>Detect URL change</span></label>
+      </div>
+      <div class="checkbox">
+        <label><input type="checkbox" name="open_new_window"><span>Open new tabs from inserted links</span></label>
+      </div>
+      <div class="settings-row">
+        <label for="f-base_remain_height">Base remain height (px)</label><br>
+        <input type="range" name="base_remain_height" id="f-base_remain_height" min="0" max="2000" step="10">
+      </div>
+      <div class="settings-row">
+        <label for="f-min_request_interval">Request interval (sec.)</label><br>
+        <input type="range" name="min_request_interval" id="f-min_request_interval" min="0" max="10000" step="1000">
+      </div>
+      <div class="checkbox">
+        <label><input type="checkbox" name="debug"><span>Debug mode</span></label>
+      </div>
+    </form>
+    <script src="options.js"></script>
+  </body>
+</html>

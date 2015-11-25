@@ -1,0 +1,27 @@
+{
+  "name": "Pagerization",
+  "version": "1.0",
+  "manifest_version": 2,
+  "description": "Pagerization loads the next page when you scroll the page like Autopagerize.",
+  "icons": {
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "background": {
+    "scripts": [ "background.js" ],
+    "persistent": false
+  },
+  "content_scripts": [ {
+    "all_frames": true,
+    "js": [ "pagerization.js" ],
+    "matches": [ "http://*/*", "https://*/*" ],
+    "run_at": "document_end"
+  } ],
+  "page_action": {},
+  "options_page": "options.html",
+  "options_ui": {
+    "chrome_style": true,
+    "page": "options.html"
+  },
+  "permissions": [ "http://wedata.net/", "tabs" ]
+}
