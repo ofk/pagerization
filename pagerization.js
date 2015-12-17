@@ -1,19 +1,11 @@
-(function (chrome, location, window, document, DOMParser, parseInt) {
+(function (chrome, location, window, document, DOMParser, URL, parseInt) {
   // utils
-  var EXPANDED_PATH_CONTAINER = (new DOMParser).parseFromString('<!DOCTYPE html><html><head><base/></head><body><a/></body></html>', 'text/html'),
-      NAMESPACE_RESOLVER = (document.documentElement.tagName !== 'HTML' && document.createElement('p').tagName !== document.createElement('P').tagName)
+  var NAMESPACE_RESOLVER = (document.documentElement.tagName !== 'HTML' && document.createElement('p').tagName !== document.createElement('P').tagName)
         ? (() => document.documentElement.namespaceURI) : null,
       ROOT_ELEMENT = document.compatMode === 'BackCompat' ? document.body : document.documentElement;
 
   function debug() {
     debug.show && console.debug.apply(console, ['[pagerization]'].concat(Array.prototype.slice.call(arguments)));
-  }
-
-  function getExpandPath(path, basePath) {
-    EXPANDED_PATH_CONTAINER.querySelector('base').href = basePath;
-    var anchor = EXPANDED_PATH_CONTAINER.querySelector('a');
-    anchor.href = path;
-    return anchor.href;
   }
 
   function dispatchEvent(type, options) {
@@ -242,7 +234,7 @@
       if (!/[?&]page=\d+/.test(url)) url += (url.indexOf('?') === -1 ? '?' : '&') + 'page=0';
       return url.replace(/([?&]page=)\d+/, `$1${node.textContent.trim()}`);
     }
-    return getExpandPath(node.getAttribute('href') || node.getAttribute('action') || node.getAttribute('value'), nextURL);
+    return (new URL(node.getAttribute('href') || node.getAttribute('action') || node.getAttribute('value'), nextURL)).href;
   }
 
   function getInsertPoint(doc) {
@@ -300,4 +292,4 @@
     }
     send({});
   });
-}(chrome, location, window, document, DOMParser, parseInt));
+}(chrome, location, window, document, DOMParser, URL, parseInt));
