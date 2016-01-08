@@ -72,6 +72,18 @@
   }
 
   function load() {
+    if (!checkInsertPoint()) {
+      debug('update insert point');
+      insertPoint = getInsertPoint(document);
+      loadedURLs = {};
+      pageNum = 1;
+      nextURL = getNextUrl(document);
+      if (!nextURL) {
+        terminate();
+        return;
+      }
+    }
+
     debug('load', nextURL);
     if (loadedURLs[nextURL]) {
       terminate();
@@ -112,14 +124,6 @@
     if (!pageElements.length) {
       terminate();
       return;
-    }
-
-    if (!checkInsertPoint()) {
-      debug('update insert point');
-      loadedURLs = {};
-      loadedURLs[nextURL] = true;
-      pageNum = 1;
-      insertPoint = getInsertPoint(document);
     }
 
     var p = document.createElement('p');
