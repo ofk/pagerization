@@ -62,7 +62,7 @@
     debug('enable');
     dispatchEvent('enable');
     enabled = true;
-    checkScroll();
+    checkLoad();
   }
 
   function disable() {
@@ -107,7 +107,12 @@
         req.open('GET', nextURL, true);
         req.send(null);
       }, Math.max(0, options.minRequestInterval - (Date.now() - lastLoadTime)));
-    }).then(append, error).then(() => {
+    }).then((req) => {
+      append(req);
+      loading = false;
+      checkLoad();
+    }, (req) => {
+      error(req);
       loading = false;
     });
   }
@@ -193,6 +198,12 @@
     if (!enabled || loading) return;
     if (ROOT_ELEMENT.scrollHeight - window.innerHeight - window.pageYOffset < calcRemainHeight()) {
       load();
+    }
+  }
+
+  function checkLoad() {
+    if (ROOT_ELEMENT.scrollHeight < window.innerHeight) {
+      checkScroll();
     }
   }
 
