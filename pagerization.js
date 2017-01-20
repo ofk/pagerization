@@ -34,7 +34,7 @@
   function start(rule) {
     if (started) return true;
 
-    nextURL = location.href; // for base path
+    var url = nextURL = location.href; // for base path
     nextLinkPath = rule.nextLink;
     pageElementPath = rule.pageElement;
 
@@ -49,6 +49,7 @@
     enabled = false;
     loading = false;
     loadedURLs = {};
+    loadedURLs[url] = true;
     pageNum = 1;
 
     options.enable ? enable() : disable();
@@ -76,6 +77,7 @@
       debug('update insert point');
       insertPoint = getInsertPoint(document);
       loadedURLs = {};
+      loadedURLs[location.href] = true;
       pageNum = 1;
       nextURL = getNextUrl(document);
       if (!nextURL) {
