@@ -32,6 +32,14 @@
     }
   }
 
+  function isSafetyResponse(req) {
+    if (req.response) {
+      if (!req.getResponseHeader('Access-Control-Allow-Origin')) return true;
+      if ('responseURL' in req && location.host === new URL(req.responseURL).host) return true;
+    }
+    return false;
+  }
+
   // pagerization
   let options = {};
   let started;
@@ -123,7 +131,7 @@
         lastLoadTime = Date.now();
         const req = new XMLHttpRequest();
         req.onload = () => {
-          req.response && !req.getResponseHeader('Access-Control-Allow-Origin') ? resolve(req) : reject(req);
+          isSafetyResponse(req) ? resolve(req) : reject(req);
         };
         req.onerror = () => {
           reject(req);
