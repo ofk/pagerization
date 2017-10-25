@@ -167,9 +167,21 @@
     debug('append', request);
 
     const doc = (new DOMParser()).parseFromString(request.responseText, 'text/html');
-    Array.prototype.forEach.call(doc.querySelectorAll('script'), (script) => {
+    doc.querySelectorAll('script').forEach((script) => {
       script.parentNode.removeChild(script);
     });
+    if (options.imageLoading) {
+      doc.querySelectorAll('img').forEach((img) => {
+        const attrs = img.attributes;
+        for (let i = 0, iz = attrs.length; i < iz; ++i) {
+          const name = attrs[i].name;
+          if (/^data-.*src$/.test(name)) {
+            img.setAttribute('src', img.getAttribute(name));
+            break;
+          }
+        }
+      });
+    }
 
     const pageElements = getPageElements(doc);
     if (!pageElements.length) {
