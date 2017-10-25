@@ -53,6 +53,17 @@
   let pageElementPath;
   let lastLoadTime = 0;
 
+  const BEFORE_LOAD_RULES = {
+    'togetter.com': () => {
+      const moreButton = document.querySelector('.more_tweet_box > .btn');
+      if (moreButton) {
+        moreButton.click();
+        insertPoint = getInsertPoint(document);
+      }
+      return !!moreButton;
+    },
+  };
+
   function initialize() {
     window.removeEventListener('scroll', checkScroll, false);
     window.removeEventListener('resize', checkScroll, false);
@@ -103,6 +114,9 @@
   }
 
   function load() {
+    const beforeLoad = BEFORE_LOAD_RULES[location.host];
+    if (beforeLoad && beforeLoad()) return;
+
     if (!checkInsertPoint()) {
       debug('update insert point');
       insertPoint = getInsertPoint(document);
