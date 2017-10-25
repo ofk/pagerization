@@ -1,0 +1,43 @@
+---
+root: true
+
+env:
+  browser: true
+  es6: true
+
+parser: babel-eslint
+
+extends:
+  - airbnb-base
+
+rules:
+  arrow-parens:
+    - error
+    - always
+  comma-dangle:
+    - error
+    -
+      arrays: always-multiline
+      objects: always-multiline
+      imports: always-multiline
+      exports: always-multiline
+      functions: never
+  default-case: off
+  func-names: off
+  max-len: off
+  no-bitwise: off
+  no-case-declarations: off
+  no-console: off
+  no-mixed-operators: off
+  no-unused-expressions:
+    - error
+    -
+      allowShortCircuit: true
+      allowTernary: true
+      allowTaggedTemplates: false
+  no-use-before-define: off
+  no-plusplus: off
+  prefer-destructuring: off
+
+globals:
+  chrome: true

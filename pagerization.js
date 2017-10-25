@@ -1,18 +1,19 @@
-(function (chrome, location, window, document, DOMParser, URL, parseInt) {
+(function (chrome, window, document, DOMParser, URL, parseInt) {
   // utils
-  var NAMESPACE_RESOLVER = (document.documentElement.tagName !== 'HTML' && document.createElement('p').tagName !== document.createElement('P').tagName)
-        ? (() => document.documentElement.namespaceURI) : null,
-      ROOT_ELEMENT = document.compatMode === 'BackCompat' ? document.body : document.documentElement;
+  const NAMESPACE_RESOLVER = (document.documentElement.tagName !== 'HTML' && document.createElement('p').tagName !== document.createElement('P').tagName)
+    ? (() => document.documentElement.namespaceURI) : null;
+  const ROOT_ELEMENT = document.compatMode === 'BackCompat' ? document.body : document.documentElement;
+  const location = window.location;
 
   function debug() {
-    debug.show && console.debug.apply(console, ['[pagerization]'].concat(Array.prototype.slice.call(arguments)));
+    debug.show && console.debug(...['[pagerization]'].concat(Array.from(arguments))); // eslint-disable-line prefer-rest-params
   }
 
   function dispatchEvent(type, options) {
-    var event = document.createEvent('Event');
+    const event = document.createEvent('Event');
     event.initEvent(`Pagerization.${type}`, true, false);
     if (options) {
-      for (var k in options) if (!event[k]) event[k] = options[k];
+      for (const k in options) if (!event[k]) event[k] = options[k]; // eslint-disable-line no-restricted-syntax
     }
     document.dispatchEvent(event);
   }
@@ -22,7 +23,17 @@
   }
 
   // pagerization
-  var options = {}, started, enabled, loading, loadedURLs, pageNum, nextURL, insertPoint, nextLinkPath, pageElementPath, lastLoadTime = 0;
+  let options = {};
+  let started;
+  let enabled;
+  let loading;
+  let loadedURLs;
+  let pageNum;
+  let nextURL;
+  let insertPoint;
+  let nextLinkPath;
+  let pageElementPath;
+  let lastLoadTime = 0;
 
   function initialize() {
     window.removeEventListener('scroll', checkScroll, false);
@@ -34,7 +45,8 @@
   function start(rule) {
     if (started) return true;
 
-    var url = nextURL = location.href; // for base path
+    const url = location.href; // for base path
+    nextURL = url;
     nextLinkPath = rule.nextLink;
     pageElementPath = rule.pageElement;
 
@@ -99,7 +111,7 @@
     new Promise((resolve, reject) => {
       setTimeout(() => {
         lastLoadTime = Date.now();
-        var req = new XMLHttpRequest;
+        const req = new XMLHttpRequest();
         req.onload = () => {
           req.response && !req.getResponseHeader('Access-Control-Allow-Origin') ? resolve(req) : reject(req);
         };
@@ -122,44 +134,44 @@
   function append(request) {
     debug('append', request);
 
-    var doc = (new DOMParser).parseFromString(request.responseText, 'text/html');
+    const doc = (new DOMParser()).parseFromString(request.responseText, 'text/html');
     Array.prototype.forEach.call(doc.querySelectorAll('script'), (script) => {
       script.parentNode.removeChild(script);
     });
 
-    var pageElements = getPageElements(doc);
+    const pageElements = getPageElements(doc);
     if (!pageElements.length) {
       terminate();
       return;
     }
 
-    var p = document.createElement('p');
+    const p = document.createElement('p');
     p.className = 'autopagerize_page_info';
-    var a = p.appendChild(document.createElement('a'));
+    const a = p.appendChild(document.createElement('a'));
     a.className = 'autopagerize_link';
     a.href = nextURL;
     a.appendChild(document.createTextNode(`page: ${++pageNum}`));
 
-    var insertParent = insertPoint.parentNode;
+    const insertParent = insertPoint.parentNode;
     if (/^tbody$/i.test(insertParent.tagName)) {
-      var colSpans = 0,
-          colNodes = document.evaluate('child::tr[1]/child::*[self::td or self::th]', insertParent, NAMESPACE_RESOLVER, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-      for (var i = 0, iz = colNodes.snapshotLength; i < iz; ++i) {
+      let colSpans = 0;
+      const colNodes = document.evaluate('child::tr[1]/child::*[self::td or self::th]', insertParent, NAMESPACE_RESOLVER, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+      for (let i = 0, iz = colNodes.snapshotLength; i < iz; ++i) {
         colSpans += parseInt(colNodes.snapshotItem(i).colSpan, 10) || 1;
       }
-      var td = document.createElement('td');
+      const td = document.createElement('td');
       td.colSpan = colSpans;
       td.appendChild(p);
       insertParent.insertBefore(document.createElement('tr'), insertPoint).appendChild(td);
     } else {
-      var hr = document.createElement('hr');
+      const hr = document.createElement('hr');
       hr.className = 'autopagerize_page_separator';
       insertParent.insertBefore(hr, insertPoint);
       insertParent.insertBefore(p, insertPoint);
     }
     pageElements.forEach((pageElement) => {
-      var insertNode = insertParent.insertBefore(document.importNode(pageElement, true), insertPoint);
-      var event = document.createEvent('MutationEvent');
+      const insertNode = insertParent.insertBefore(document.importNode(pageElement, true), insertPoint);
+      const event = document.createEvent('MutationEvent');
       event.initMutationEvent('Pagerization.DOMNodeInserted', true, false, insertParent, null, nextURL, null, null);
       insertNode.dispatchEvent(event);
     });
@@ -186,9 +198,10 @@
 
   function rewriteTargetWindow(event) {
     if (event.target && event.target.getElementsByTagName) {
-      var anchors = event.target.getElementsByTagName('a');
-      for (var i = 0, iz = anchors.length; i < iz; ++i) {
-        var anchor = anchors[i], href = anchor.getAttribute('href');
+      const anchors = event.target.getElementsByTagName('a');
+      for (let i = 0, iz = anchors.length; i < iz; ++i) {
+        const anchor = anchors[i];
+        const href = anchor.getAttribute('href');
         if (href && !/^javascript:/.test(href) && !/^#/.test(href) && !anchor.target) {
           anchor.target = options.targetWindowName;
         }
@@ -210,7 +223,7 @@
   }
 
   function checkInsertPoint() {
-    var point = insertPoint;
+    let point = insertPoint;
     while (point) {
       if (point === document) return true;
       point = point.parentNode;
@@ -219,7 +232,10 @@
   }
 
   function calcRemainHeight() {
-    var point = insertPoint, insertParent = point.parentNode, rect, bottom;
+    let point = insertPoint;
+    const insertParent = point.parentNode;
+    let rect;
+    let bottom;
     while (point && !point.getBoundingClientRect) {
       point = point.nextSibling;
     }
@@ -237,45 +253,47 @@
   }
 
   function getPageElements(doc) {
-    var r = doc.evaluate(pageElementPath, doc, NAMESPACE_RESOLVER, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null), iz = r.snapshotLength, res = new Array(iz);
-    for (var i = 0; i < iz; ++i) res[i] = r.snapshotItem(i);
+    const r = doc.evaluate(pageElementPath, doc, NAMESPACE_RESOLVER, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+    const iz = r.snapshotLength;
+    const res = new Array(iz);
+    for (let i = 0; i < iz; ++i) res[i] = r.snapshotItem(i);
     return res;
   }
 
   function getNextUrl(doc) {
-    var node = doc.evaluate(nextLinkPath, doc, NAMESPACE_RESOLVER, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    const node = doc.evaluate(nextLinkPath, doc, NAMESPACE_RESOLVER, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
     if (!node) return null;
     if (node.getAttribute('href') === '#') {
       // for matome.naver.jp
-      var url = nextURL;
-      if (!/[?&]page=\d+/.test(url)) url += (url.indexOf('?') === -1 ? '?' : '&') + 'page=0';
+      let url = nextURL;
+      if (!/[?&]page=\d+/.test(url)) url += `${url.indexOf('?') === -1 ? '?' : '&'}page=0`;
       return url.replace(/([?&]page=)\d+/, `$1${node.textContent.trim()}`);
     }
     return (new URL(node.getAttribute('href') || node.getAttribute('action') || node.getAttribute('value'), nextURL)).href;
   }
 
   function getInsertPoint(doc) {
-    var pageElements = getPageElements(doc);
+    const pageElements = getPageElements(doc);
     if (!pageElements.length) return null;
-    var lastPageElement = pageElements[pageElements.length - 1];
+    const lastPageElement = pageElements[pageElements.length - 1];
     return lastPageElement.nextSibling || lastPageElement.parentNode.appendChild(document.createTextNode(' '));
   }
 
   // initialize
-  var pathTid;
+  let pathTid;
 
   function initPagerization() {
     chrome.runtime.sendMessage({
       action: 'Pagerization.initialize',
-      url: location.href
+      url: location.href,
     }, (response) => {
       options = response.options;
       debug.show = options.debug;
       if (pathTid) clearInterval(pathTid);
-      if (options.detectURLChange && window.top == window.self) {
-        var currentPath = location.pathname + location.search;
+      if (options.detectURLChange && window.top == window.self) { // eslint-disable-line eqeqeq
+        let currentPath = location.pathname + location.search;
         pathTid = setInterval(() => {
-          var path = location.pathname + location.search;
+          const path = location.pathname + location.search;
           if (currentPath !== path) {
             currentPath = path;
             initPagerization();
@@ -301,12 +319,12 @@
 
   chrome.runtime.onMessage.addListener((data, sender, send) => {
     switch (data.action) {
-    case 'Pagerization.toggleStatus':
-      if (started) {
-        enabled ? disable() : enable();
-      }
-      break;
+      case 'Pagerization.toggleStatus':
+        if (started) {
+          enabled ? disable() : enable();
+        }
+        break;
     }
     send({});
   });
-}(chrome, location, window, document, DOMParser, URL, parseInt));
+}(chrome, window, document, DOMParser, URL, parseInt));

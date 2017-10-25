@@ -1,6 +1,6 @@
 chrome.runtime.getBackgroundPage((background) => {
-  var options = background.pagerOptions.get(),
-      f = document.getElementById('f');
+  const options = background.pagerOptions.get();
+  const f = document.getElementById('f');
 
   f.update_rules.addEventListener('click', (event) => {
     background.pagerRules.update(true).then(() => {
