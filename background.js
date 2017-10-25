@@ -72,15 +72,15 @@ function generateIconContext(color, size, x, r, s) {
 
 // storage util
 const storage = {
-  getData(key) {
+  getRawData(key) {
     const val = localStorage.getItem(key);
     return val ? JSON.parse(val) : null;
   },
-  setData(key, val) {
+  setRawData(key, val) {
     localStorage.setItem(key, JSON.stringify(val));
   },
-  get(key, force) {
-    let data = this.getData(key);
+  getSync(key, force) {
+    let data = this.getRawData(key);
     if (!force && data && data.expire) {
       if (new Date(data.expire).getTime() <= Date.now()) {
         data = null;
@@ -88,7 +88,7 @@ const storage = {
     }
     return data && ('value' in data) ? data.value : data;
   },
-  set(key, value, expire) {
+  setSync(key, value, expire) {
     const data = { value };
     if (expire) {
       if (expire instanceof Date) {
@@ -99,15 +99,11 @@ const storage = {
         throw new Error('invalid expire type');
       }
     }
-    this.setData(key, data);
-  },
-  has(key, force) {
-    if (!(key in localStorage)) return false;
-    return this.get(key, force) !== null;
+    this.setRawData(key, data);
   },
   touch(key, expire) {
-    const data = this.get(key, true);
-    if (data) this.set(key, data, expire);
+    const data = this.getSync(key, true);
+    if (data) this.setSync(key, data, expire);
   },
 };
 
@@ -115,9 +111,9 @@ const storage = {
 const pagerRules = {
   data: null,
   expire: 1000 * 60 * 60 * 24, // expire 1 day
-  get() {
+  getSync() {
     if (!this.data) {
-      const data = storage.get('wedataRules', true);
+      const data = storage.getSync('wedataRules', true);
       this.setup(data && data.rules || []);
     }
     return this.data;
@@ -127,7 +123,7 @@ const pagerRules = {
     this.data = rules;
   },
   fetch(force) {
-    if (!force && storage.has('wedataRules')) return new Promise(() => {});
+    if (!force && this.getSync('wedataRules') !== null) return new Promise(() => {});
 
     return fetchJSON(WEDATA_IMPORT_URL).then((req) => {
       console.debug('succeed to fetch rules');
@@ -149,7 +145,7 @@ const pagerRules = {
       });
       rules.sort((a, b) => b.url.length - a.url.length);
       rules.push(...MICROFORMATS);
-      storage.set('wedataRules', { rules }, this.expire); // expire 1 day
+      storage.setSync('wedataRules', { rules }, this.expire); // expire 1 day
       this.setup(rules);
       return Promise.resolve(req);
     }, (req) => {
@@ -162,12 +158,12 @@ const pagerRules = {
 
 // options util
 const pagerOptions = {
-  data: storage.get('options') || Object.assign({}, DEFAULT_OPTIONS),
-  get() {
+  data: storage.getSync('options') || Object.assign({}, DEFAULT_OPTIONS),
+  getSync() {
     return this.data;
   },
-  set(data) {
-    storage.set('options', data);
+  setSync(data) {
+    storage.setSync('options', data);
     this.data = data;
   },
 };
@@ -178,8 +174,8 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
     case 'Pagerization.initialize':
       const url = request.url;
       sendResponse({
-        rules: url ? pagerRules.get().filter((rule) => !rule.disabled && new RegExp(rule.url).test(url)) : [],
-        options: pagerOptions.get(),
+        rules: url ? pagerRules.getSync().filter((rule) => !rule.disabled && new RegExp(rule.url).test(url)) : [],
+        options: pagerOptions.getSync(),
       });
       break;
 
@@ -195,7 +191,7 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
       break;
 
     case 'Pagerization.setOptions':
-      pagerOptions.set(request.options);
+      pagerOptions.setSync(request.options);
       sendResponse({});
       break;
 
