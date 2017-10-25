@@ -177,9 +177,8 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
   switch (request.action) {
     case 'Pagerization.initialize':
       const url = request.url;
-      if (!url) return;
       sendResponse({
-        rules: pagerRules.get().filter((rule) => !rule.disabled && new RegExp(rule.url).test(url)),
+        rules: url ? pagerRules.get().filter((rule) => !rule.disabled && new RegExp(rule.url).test(url)) : [],
         options: pagerOptions.get(),
       });
       break;
@@ -195,9 +194,23 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({});
       break;
 
+    case 'Pagerization.setOptions':
+      pagerOptions.set(request.options);
+      sendResponse({});
+      break;
+
+    case 'Pagerization.updateRules':
+      pagerRules.update(request.force).then(() => {
+        sendResponse({ status: 'success' });
+      }, () => {
+        sendResponse({ status: 'failure' });
+      });
+      break;
+
     default:
       throw new Error(`invalid request action: ${request.action}`);
   }
+  return true;
 });
 
 chrome.pageAction.onClicked.addListener((tab) => {
