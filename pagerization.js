@@ -163,6 +163,18 @@
       td.colSpan = colSpans;
       td.appendChild(p);
       insertParent.insertBefore(document.createElement('tr'), insertPoint).appendChild(td);
+    } else if (/^ul$/i.test(insertParent.tagName)) {
+      const li = document.createElement('li');
+      li.appendChild(p);
+      const itemNode = document.evaluate('child::li[1]', insertParent, NAMESPACE_RESOLVER, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+      if (itemNode) {
+        const cssFloat = window.getComputedStyle(itemNode).float;
+        if (cssFloat) {
+          li.style.clear = cssFloat;
+          li.style.cssFloat = 'none';
+        }
+      }
+      insertParent.insertBefore(li, insertPoint);
     } else {
       const hr = document.createElement('hr');
       hr.className = 'autopagerize_page_separator';
