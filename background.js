@@ -126,11 +126,11 @@ const pagerRules = {
     // TODO: attach custom rules
     this.data = rules;
   },
-  update(force) {
+  fetch(force) {
     if (!force && storage.has('wedataRules')) return new Promise(() => {});
 
     return fetchJSON(WEDATA_IMPORT_URL).then((req) => {
-      console.debug('succeed to update rules');
+      console.debug('succeed to fetch rules');
       const rules = [];
       req.response.forEach((datum) => {
         const d = datum.data || datum;
@@ -153,7 +153,7 @@ const pagerRules = {
       this.setup(rules);
       return Promise.resolve(req);
     }, (req) => {
-      console.debug('fail to update rules');
+      console.debug('fail to fetch rules');
       storage.touch('wedataRules', this.expire);
       return Promise.reject(req);
     });
@@ -199,8 +199,8 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
       sendResponse({});
       break;
 
-    case 'Pagerization.updateRules':
-      pagerRules.update(request.force).then(() => {
+    case 'Pagerization.fetchRules':
+      pagerRules.fetch(request.force).then(() => {
         sendResponse({ status: 'success' });
       }, () => {
         sendResponse({ status: 'failure' });
@@ -219,4 +219,4 @@ chrome.pageAction.onClicked.addListener((tab) => {
   });
 });
 
-pagerRules.update();
+pagerRules.fetch();

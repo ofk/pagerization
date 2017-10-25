@@ -1,7 +1,7 @@
 const f = document.getElementById('f');
 
 f.update_rules.addEventListener('click', (event) => {
-  chrome.runtime.sendMessage({ action: 'Pagerization.updateRules', force: true }, (response) => {
+  chrome.runtime.sendMessage({ action: 'Pagerization.fetchRules', force: true }, (response) => {
     f.update_rules.nextElementSibling.textContent = response.status;
   });
   event.preventDefault();
