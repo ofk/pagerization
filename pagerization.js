@@ -22,6 +22,16 @@
     window.addEventListener(`Pagerization.${type}`, callback, false);
   }
 
+  function safetyEvaluate(exp, root, type) {
+    const context = root.ownerDocument || root;
+    try {
+      return context.evaluate(exp, root, NAMESPACE_RESOLVER, type, null);
+    } catch (e) {
+      console.error(e);
+      return null;
+    }
+  }
+
   // pagerization
   let options = {};
   let started;
@@ -155,7 +165,7 @@
     const insertParent = insertPoint.parentNode;
     if (/^tbody$/i.test(insertParent.tagName)) {
       let colSpans = 0;
-      const colNodes = document.evaluate('child::tr[1]/child::*[self::td or self::th]', insertParent, NAMESPACE_RESOLVER, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+      const colNodes = safetyEvaluate('child::tr[1]/child::*[self::td or self::th]', insertParent, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
       for (let i = 0, iz = colNodes.snapshotLength; i < iz; ++i) {
         colSpans += parseInt(colNodes.snapshotItem(i).colSpan, 10) || 1;
       }
@@ -166,7 +176,7 @@
     } else if (/^ul$/i.test(insertParent.tagName)) {
       const li = document.createElement('li');
       li.appendChild(p);
-      const itemNode = document.evaluate('child::li[1]', insertParent, NAMESPACE_RESOLVER, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+      const itemNode = safetyEvaluate('child::li[1]', insertParent, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue;
       if (itemNode) {
         const cssFloat = window.getComputedStyle(itemNode).float;
         if (cssFloat) {
@@ -265,7 +275,8 @@
   }
 
   function getPageElements(doc) {
-    const r = doc.evaluate(pageElementPath, doc, NAMESPACE_RESOLVER, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
+    const r = safetyEvaluate(pageElementPath, doc, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
+    if (!r) return [];
     const iz = r.snapshotLength;
     const res = new Array(iz);
     for (let i = 0; i < iz; ++i) res[i] = r.snapshotItem(i);
@@ -273,7 +284,9 @@
   }
 
   function getNextUrl(doc) {
-    const node = doc.evaluate(nextLinkPath, doc, NAMESPACE_RESOLVER, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+    const r = safetyEvaluate(nextLinkPath, doc, XPathResult.FIRST_ORDERED_NODE_TYPE);
+    if (!r) return null;
+    const node = r.singleNodeValue;
     if (!node) return null;
     if (node.getAttribute('href') === '#') {
       // for matome.naver.jp
