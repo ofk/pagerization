@@ -1,7 +1,7 @@
 (function (chrome, window, document, DOMParser, URL, parseInt) {
   // utils
-  const NAMESPACE_RESOLVER = (document.documentElement.tagName !== 'HTML' && document.createElement('p').tagName !== document.createElement('P').tagName)
-    ? (() => document.documentElement.namespaceURI) : null;
+  const IS_XHTML = (document.documentElement.tagName !== 'HTML' && document.createElement('p').tagName !== document.createElement('P').tagName);
+  const NAMESPACE_RESOLVER = IS_XHTML ? (() => document.documentElement.namespaceURI) : null;
   const ROOT_ELEMENT = document.compatMode === 'BackCompat' ? document.body : document.documentElement;
   const location = window.location;
 
