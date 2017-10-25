@@ -174,7 +174,7 @@ chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
     case 'Pagerization.initialize':
       const url = request.url;
       sendResponse({
-        rules: url ? pagerRules.getSync().filter((rule) => !rule.disabled && new RegExp(rule.url).test(url)) : [],
+        rules: url ? pagerRules.getSync().filter((rule) => new RegExp(rule.url).test(url)) : [],
         options: pagerOptions.getSync(),
       });
       break;
