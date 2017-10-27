@@ -1,4 +1,4 @@
-(function (chrome, window, document, DOMParser, URL, parseInt) {
+(function (chrome, window, document, URL, parseInt) {
   // utils
   const IS_XHTML = (document.documentElement.tagName !== 'HTML' && document.createElement('p').tagName !== document.createElement('P').tagName);
   const NAMESPACE_RESOLVER = IS_XHTML ? (() => document.documentElement.namespaceURI) : null;
@@ -150,6 +150,7 @@
         req.onerror = () => {
           reject(req);
         };
+        req.responseType = 'document';
         req.open('GET', nextURL, true);
         req.send(null);
       }, Math.max(0, options.minRequestInterval - (Date.now() - lastLoadTime)));
@@ -166,7 +167,7 @@
   function append(request) {
     debug('append', request);
 
-    const doc = (new DOMParser()).parseFromString(request.responseText, 'text/html');
+    const doc = request.response;
     doc.querySelectorAll('script').forEach((script) => {
       script.parentNode.removeChild(script);
     });
@@ -386,4 +387,4 @@
     }
     send({});
   });
-}(chrome, window, document, DOMParser, URL, parseInt));
+}(chrome, window, document, URL, parseInt));
