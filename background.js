@@ -26,6 +26,14 @@ const STATUS_COLORS = {
   disabled: '#B3B3B3', // gray
 };
 
+// debug
+function debug() {
+  if (pagerOptions.getSync().debug) {
+    // eslint-disable-next-line prefer-rest-params
+    console.debug(...['[pagerization background]'].concat(Array.from(arguments)));
+  }
+}
+
 // xhr wrapper
 function fetchJSON(url) {
   return new Promise((resolve, reject) => {
@@ -125,8 +133,10 @@ const pagerRules = {
   fetch(force) {
     if (!force && this.getSync('wedataRules') !== null) return new Promise(() => {});
 
+    debug('[fetch]', 'request');
+
     return fetchJSON(WEDATA_IMPORT_URL).then((req) => {
-      console.debug('succeed to fetch rules');
+      debug('[fetch]', 'succeed to fetch rules');
       const rules = [];
       req.response.forEach((datum) => {
         const d = datum.data || datum;
@@ -138,6 +148,7 @@ const pagerRules = {
         try {
           new RegExp(r.url); // eslint-disable-line no-new
         } catch (e) {
+          debug('[fetch]', 'invalid url', r.url, r);
           return;
         }
         r.id = parseInt(datum.resource_url.match(/\d+$/), 10);
@@ -149,7 +160,7 @@ const pagerRules = {
       this.setup(rules);
       return Promise.resolve(req);
     }, (req) => {
-      console.debug('fail to fetch rules');
+      debug('[fetch]', 'fail to fetch rules');
       storage.touch('wedataRules', this.expire);
       return Promise.reject(req);
     });
@@ -170,6 +181,8 @@ const pagerOptions = {
 
 // initialize
 chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
+  debug('[onMessage]', 'request', request);
+
   switch (request.action) {
     case 'Pagerization.initialize':
       const url = request.url;

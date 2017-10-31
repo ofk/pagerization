@@ -6,14 +6,21 @@
   const location = window.location;
 
   function debug() {
-    debug.show && console.debug(...['[pagerization]'].concat(Array.from(arguments))); // eslint-disable-line prefer-rest-params
+    if (debug.show) {
+      // eslint-disable-next-line prefer-rest-params
+      console.debug(...['[pagerization]'].concat(Array.from(arguments)));
+    }
   }
 
   function dispatchEvent(type, options) {
     const event = document.createEvent('Event');
     event.initEvent(`Pagerization.${type}`, true, false);
     if (options) {
-      for (const k in options) if (!event[k]) event[k] = options[k]; // eslint-disable-line no-restricted-syntax
+      for (const k in options) { // eslint-disable-line no-restricted-syntax
+        if (!event[k]) {
+          event[k] = options[k];
+        }
+      }
     }
     document.dispatchEvent(event);
   }
@@ -36,6 +43,15 @@
     if (req.response) {
       if (!req.getResponseHeader('Access-Control-Allow-Origin')) return true;
       if ('responseURL' in req && location.host === new URL(req.responseURL).host) return true;
+      debug.show && debug(
+        '[isSafetyResponse]', 'failed',
+        req.getResponseHeader('Access-Control-Allow-Origin'),
+        'responseURL' in req,
+        location.host,
+        new URL(req.responseURL).host
+      );
+    } else {
+      debug.show && debug('[isSafetyResponse]', 'failed');
     }
     return false;
   }
@@ -56,6 +72,7 @@
   const BEFORE_LOAD_RULES = {
     'togetter.com': () => {
       const moreButton = document.querySelector('.more_tweet_box > .btn');
+      debug.show && debug('[BEFORE_LOAD_RULES]', 'togetter.com', moreButton);
       if (moreButton) {
         moreButton.click();
         insertPoint = getInsertPoint(document);
@@ -81,11 +98,12 @@
 
     nextURL = getNextUrl(document);
     if (!nextURL) return false;
+    debug.show && debug('[start]', 'nextURL', nextURL);
 
     insertPoint = getInsertPoint(document);
     if (!insertPoint) return false;
 
-    debug('started', rule);
+    debug.show && debug('[start]', rule, options);
     started = true;
     enabled = false;
     loading = false;
@@ -101,14 +119,14 @@
   }
 
   function enable() {
-    debug('enable');
+    debug.show && debug('[enable]');
     dispatchEvent('enable');
     enabled = true;
     checkLoad();
   }
 
   function disable() {
-    debug('disable');
+    debug.show && debug('[disable]');
     dispatchEvent('disable');
     enabled = false;
   }
@@ -118,19 +136,20 @@
     if (beforeLoad && beforeLoad()) return;
 
     if (!checkInsertPoint()) {
-      debug('update insert point');
+      debug.show && debug('[load]', 'update insertPoint');
       insertPoint = getInsertPoint(document);
       loadedURLs = {};
       loadedURLs[location.href] = true;
       pageNum = 1;
       nextURL = getNextUrl(document);
+      debug.show && debug('[load]', 'nextURL (update insertPoint)', nextURL);
       if (!nextURL) {
         terminate();
         return;
       }
     }
 
-    debug('load', nextURL);
+    debug.show && debug('[load]', 'nextURL', nextURL, loadedURLs[nextURL]);
     if (loadedURLs[nextURL]) {
       terminate();
       return;
@@ -141,6 +160,8 @@
     dispatchEvent('load');
 
     new Promise((resolve, reject) => {
+      const delay = Math.max(0, options.minRequestInterval - (Date.now() - lastLoadTime));
+      debug.show && debug('[load]', 'delay', delay);
       setTimeout(() => {
         lastLoadTime = Date.now();
         const req = new XMLHttpRequest();
@@ -153,7 +174,7 @@
         req.responseType = 'document';
         req.open('GET', nextURL, true);
         req.send(null);
-      }, Math.max(0, options.minRequestInterval - (Date.now() - lastLoadTime)));
+      }, delay);
     }).then((req) => {
       append(req);
       loading = false;
@@ -165,7 +186,7 @@
   }
 
   function append(request) {
-    debug('append', request);
+    debug.show && debug('[append]', request);
 
     const doc = request.response;
     doc.querySelectorAll('script').forEach((script) => {
@@ -185,6 +206,7 @@
     }
 
     const pageElements = getPageElements(doc);
+    debug.show && debug('[append]', 'pageElements.length', pageElements.length);
     if (!pageElements.length) {
       terminate();
       return;
@@ -198,6 +220,7 @@
     a.appendChild(document.createTextNode(`page: ${++pageNum}`));
 
     const insertParent = insertPoint.parentNode;
+    debug.show && debug('[append]', 'insertParent.tagName', insertParent.tagName);
     if (/^tbody$/i.test(insertParent.tagName)) {
       let colSpans = 0;
       const colNodes = safetyEvaluate('child::tr[1]/child::*[self::td or self::th]', insertParent, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE);
@@ -243,12 +266,12 @@
   }
 
   function error(request) {
-    debug('error', request);
+    debug.show && debug('[error]', request);
     dispatchEvent('error');
   }
 
   function terminate() {
-    debug('terminate');
+    debug.show && debug('[terminate]');
     dispatchEvent('terminate');
     initialize();
   }
@@ -270,6 +293,12 @@
     if (!enabled || loading) return;
     if (ROOT_ELEMENT.scrollHeight - window.innerHeight - window.pageYOffset < calcRemainHeight()) {
       load();
+    } else {
+      debug.show && debug(
+        '[checkScroll]', 'not load',
+        ROOT_ELEMENT.scrollHeight - window.innerHeight - window.pageYOffset,
+        calcRemainHeight()
+      );
     }
   }
 
