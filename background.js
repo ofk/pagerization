@@ -60,7 +60,7 @@ function generateIconContext(color, size, x, r, s) {
   canvas.width = size;
   canvas.height = size;
   if (s) {
-    const n = parseInt('#0F9D58'.slice(1), 16);
+    const n = parseInt(color.slice(1), 16);
     ctx.shadowColor = `rgba(${n >> 16}, ${(n >> 8) & 255}, ${n & 255}, 0.2)`;
     ctx.shadowBlur = 0;
     ctx.shadowOffsetX = 0;
