@@ -8,7 +8,7 @@
   function debug() {
     if (debug.show) {
       // eslint-disable-next-line prefer-rest-params
-      console.debug(...['[pagerization]'].concat(Array.from(arguments)));
+      console.debug('[pagerization]', ...arguments);
     }
   }
 

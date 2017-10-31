@@ -30,7 +30,7 @@ const STATUS_COLORS = {
 function debug() {
   if (pagerOptions.getSync().debug) {
     // eslint-disable-next-line prefer-rest-params
-    console.debug(...['[pagerization background]'].concat(Array.from(arguments)));
+    console.debug('[pagerization background]', ...arguments);
   }
 }
 
