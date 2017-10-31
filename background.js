@@ -180,7 +180,7 @@ const pagerOptions = {
 };
 
 // initialize
-chrome.extension.onMessage.addListener((request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   debug('[onMessage]', 'request', request);
 
   switch (request.action) {
