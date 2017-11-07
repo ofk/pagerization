@@ -303,7 +303,7 @@
   }
 
   function checkLoad() {
-    if (ROOT_ELEMENT.scrollHeight < window.innerHeight) {
+    if (ROOT_ELEMENT.scrollHeight <= window.innerHeight) {
       checkScroll();
     }
   }
