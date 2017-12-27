@@ -131,7 +131,7 @@ const pagerRules = {
     this.data = rules;
   },
   fetch(force) {
-    if (!force && this.getSync('wedataRules') !== null) return new Promise(() => {});
+    if (!force && storage.getSync('wedataRules') !== null) return new Promise(() => {});
 
     debug('[fetch]', 'request');
 
